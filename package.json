@@ -11,13 +11,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -w",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && tsc -p tsconfig.test.json && node --test \"dist/test/*.test.js\""
   },
   "keywords": [],
   "author": "andersonreges",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@types/node": "^25.2.0",
     "typescript": "^5.9.3"
   }
 }

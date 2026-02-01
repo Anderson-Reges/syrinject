@@ -8,6 +8,7 @@
     "emitDeclarationOnly": false,
     "module": "CommonJS"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["src/test/**/*", "test/**/*", "dist/**/*", "dist-test/**/*"]
 }
 
