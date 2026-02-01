@@ -5,7 +5,8 @@
     "rootDir": "src",
     "declaration": true,
     "declarationMap": false,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "module": "CommonJS"
   },
   "include": ["src/**/*"]
 }
