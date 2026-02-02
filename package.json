@@ -1,7 +1,7 @@
 {
   "name": "syrinject",
   "description": "Simple dependency injection container",
-  "version": "0.1.3",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
