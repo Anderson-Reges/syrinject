@@ -149,9 +149,19 @@ service.createUser("Ada");
 
 ## Container API
 
-### `register(token, provider)`
+### `register(token, provider)` / `register(token, Class, options?)`
 
-Registers a provider for a token.
+Registers a provider for a token. The shorthand form takes a class and optional `{ singleton, deps }`.
+When `deps` is omitted, the class's static `deps` (or `dependencies`) is used.
+
+```ts
+class UserService {
+	static deps = [LoggerToken];
+	constructor(private readonly logger: LoggerService) {}
+}
+
+container.register(UserService, UserService, { singleton: true });
+```
 
 ### `resolve(token)`
 
@@ -172,7 +182,12 @@ Checks if a token is registered.
 ### `registerClass(...)`
 
 Registers a class provider. You can pass a token + class, or only a class.
-When only a class is provided, the token will be the class name (string).
+When only a class is provided, the class itself is the token.
+
+```ts
+container.registerClass(UserService, { singleton: true });
+container.resolve(UserService);
+```
 
 ### `registerValue(token, value)`
 

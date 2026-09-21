@@ -26,17 +26,57 @@ test('resolve class with deps from options', () => {
   assert.equal(car.engine.kind, 'v8');
 });
 
-test('registerClass infers token by class name', () => {
-  class Service {
-    value = 42;
+test('shorthand register(X, X) reads static deps', () => {
+  class Dep {
+    v = 42;
+  }
+
+  class Svc {
+    static deps = [Dep];
+    constructor(public dep: Dep) {}
   }
 
   const container = new Container();
-  container.registerClass(Service);
+  container.register(Dep, { useClass: Dep });
+  container.register(Svc, Svc, { singleton: true });
 
-  const resolved = container.resolve('Service');
-  assert.ok(resolved instanceof Service);
-  assert.equal(resolved.value, 42);
+  assert.equal(container.resolve(Svc).dep.v, 42);
+});
+
+test('explicit deps in options take priority over static deps', () => {
+  class Dep {
+    v = 42;
+  }
+
+  class Svc {
+    static deps = [Dep];
+    constructor(public dep: Dep) {}
+  }
+
+  const container = new Container();
+  container.registerValue('fake', { v: 1 });
+  container.register(Svc, Svc, { deps: ['fake'] });
+
+  assert.equal(container.resolve(Svc).dep.v, 1);
+});
+
+test('registerClass(X) uses the class itself as token', () => {
+  class Dep {
+    v = 42;
+  }
+
+  class Svc {
+    static deps = [Dep];
+    constructor(public dep: Dep) {}
+  }
+
+  const container = new Container();
+  container.register(Dep, { useClass: Dep });
+  container.registerClass(Svc, { singleton: true });
+
+  assert.equal(container.resolve(Svc).dep.v, 42);
+  assert.equal(container.resolve(Svc), container.resolve(Svc));
+  assert.equal(container.has('Svc'), false);
 });
 
 test('singleton class provider returns same instance', () => {
@@ -80,6 +120,20 @@ test('factory provider respects singleton', () => {
   const b = container.resolve('singleton');
 
   assert.equal(a, b);
+});
+
+test('singleton resolving to undefined is created only once', () => {
+  const container = new Container();
+  let calls = 0;
+  container.registerFactory('u', () => {
+    calls++;
+    return undefined;
+  }, { singleton: true });
+
+  container.resolve('u');
+  container.resolve('u');
+
+  assert.equal(calls, 1);
 });
 
 test('throws DependencyNotFoundError for missing token', () => {
