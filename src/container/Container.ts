@@ -7,6 +7,8 @@ import { InvalidProviderError } from '../errors/InvalidProviderError';
 /**
  * Internal registry entry.
  * Stores provider configuration and, when applicable, the cached instance.
+ * The `value` key is only set once a singleton is resolved, so `'value' in entry`
+ * marks the cache as filled even when the resolved value is `undefined`.
  */
 type RegistryEntry<T = any> = {
   provider: Provider<T>;
@@ -64,6 +66,7 @@ export class Container {
 
   /**
    * Registers a class provider (syntactic sugar for `register` with a class).
+   * When only a class is given, the class itself is used as the token.
    *
    * @typeParam T - The dependency type.
    * @param token - Unique token associated with the dependency.
@@ -87,8 +90,7 @@ export class Container {
     options: { singleton?: boolean; deps?: Token[] } = {}
   ): void {
     if (typeof tokenOrClass === 'function') {
-      const inferredToken = tokenOrClass.name;
-      this.register(inferredToken, tokenOrClass, (useClassOrOptions as { singleton?: boolean; deps?: Token[] }) ?? {});
+      this.register(tokenOrClass, tokenOrClass, (useClassOrOptions as { singleton?: boolean; deps?: Token[] }) ?? {});
       return;
     }
 
@@ -180,7 +182,7 @@ export class Container {
     }
 
     if (this.isClassProvider(provider)) {
-      if (provider.singleton && entry.value !== undefined) {
+      if (provider.singleton && 'value' in entry) {
         return entry.value as T;
       }
 
@@ -195,7 +197,7 @@ export class Container {
     }
 
     if (this.isFactoryProvider(provider)) {
-      if (provider.singleton && entry.value !== undefined) {
+      if (provider.singleton && 'value' in entry) {
         return entry.value as T;
       }
 
@@ -227,7 +229,8 @@ export class Container {
     return {
       useClass: providerOrClass,
       singleton: options.singleton ?? false,
-      deps: options.deps ?? []
+      // undefined → resolveInternal falls back to static deps/dependencies
+      deps: options.deps
     };
   }
 
